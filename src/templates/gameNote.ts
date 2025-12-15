@@ -1,11 +1,21 @@
 import { GameData } from '../ui/AddGameModal';
 
+/**
+ * Generates a complete game note with frontmatter and body content.
+ * @param data - Game data to include in the note
+ * @returns Complete markdown content for the game note
+ */
 export function generateGameNote(data: GameData): string {
   const frontmatter = generateFrontmatter(data);
   const body = generateBody(data);
   return `${frontmatter}\n${body}`;
 }
 
+/**
+ * Generates YAML frontmatter for the game note.
+ * @param data - Game data to include in frontmatter
+ * @returns YAML frontmatter string
+ */
 function generateFrontmatter(data: GameData): string {
   const lines: string[] = ['---'];
 
@@ -60,6 +70,11 @@ function generateFrontmatter(data: GameData): string {
   return lines.join('\n');
 }
 
+/**
+ * Generates the markdown body content for the game note.
+ * @param data - Game data to include in the body
+ * @returns Markdown body content
+ */
 function generateBody(data: GameData): string {
   const sections: string[] = [];
 
@@ -114,10 +129,20 @@ function generateBody(data: GameData): string {
   return sections.join('\n');
 }
 
+/**
+ * Escapes special characters in a string for YAML compatibility.
+ * @param str - String to escape
+ * @returns Escaped string
+ */
 function escapeYaml(str: string): string {
   return str.replace(/"/g, '\\"');
 }
 
+/**
+ * Generates a safe filename for the game note.
+ * @param title - Game title
+ * @returns Safe filename with game emoji prefix
+ */
 export function generateFileName(title: string): string {
   // Sanitize the title for use as a filename
   const sanitized = title

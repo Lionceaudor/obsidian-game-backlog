@@ -31,10 +31,18 @@ interface HltbGameData {
   comp_all_count: number;
 }
 
+/**
+ * Client for interacting with the HowLongToBeat API.
+ * Handles authentication, search, and data mapping.
+ */
 export class HltbClient {
   private authToken: string | null = null;
   private searchUrl: string = '/api/search';
 
+  /**
+   * Fetches authentication token from HLTB API.
+   * @returns Authentication token or null if failed
+   */
   private async fetchAuthToken(): Promise<string | null> {
     try {
       const timestamp = Date.now();
@@ -59,6 +67,10 @@ export class HltbClient {
     return null;
   }
 
+  /**
+   * Discovers the current search API endpoint by parsing HLTB's frontend JavaScript.
+   * @returns The search API endpoint path
+   */
   private async discoverSearchUrl(): Promise<string> {
     try {
       const homeResponse = await requestUrl({
@@ -97,6 +109,10 @@ export class HltbClient {
     return '/api/search';
   }
 
+  /**
+   * Ensures the client is initialized with auth token and search URL.
+   * @returns True if initialization was successful
+   */
   private async ensureInitialized(): Promise<boolean> {
     if (!this.authToken) {
       this.authToken = await this.fetchAuthToken();
@@ -108,6 +124,11 @@ export class HltbClient {
     return true;
   }
 
+  /**
+   * Searches for a game on HLTB and returns completion time data.
+   * @param gameName - Name of the game to search for
+   * @returns HLTB result with completion times or null if not found
+   */
   async searchGame(gameName: string): Promise<HltbResult | null> {
     try {
       if (!(await this.ensureInitialized())) {
@@ -178,6 +199,11 @@ export class HltbClient {
     }
   }
 
+  /**
+   * Normalizes a string for comparison by removing accents and special characters.
+   * @param str - String to normalize
+   * @returns Normalized string
+   */
   private normalize(str: string): string {
     return str
       .toLowerCase()
@@ -188,6 +214,11 @@ export class HltbClient {
       .trim();
   }
 
+  /**
+   * Maps HLTB game data to the standard result format.
+   * @param game - Raw HLTB game data
+   * @returns Formatted HLTB result
+   */
   private mapToResult(game: HltbGameData): HltbResult {
     return {
       id: game.game_id,
@@ -199,11 +230,22 @@ export class HltbClient {
     };
   }
 
+  /**
+   * Converts seconds to hours with one decimal place.
+   * @param seconds - Seconds to convert
+   * @returns Hours as a number
+   */
   private secondsToHours(seconds: number): number {
     if (!seconds || seconds === 0) return 0;
     return Math.round((seconds / 3600) * 10) / 10;
   }
 
+  /**
+   * Calculates Levenshtein distance between two strings for fuzzy matching.
+   * @param s1 - First string
+   * @param s2 - Second string
+   * @returns Distance between strings
+   */
   private levenshtein(s1: string, s2: string): number {
     const m = s1.length;
     const n = s2.length;

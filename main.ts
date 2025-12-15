@@ -12,12 +12,20 @@ import { AddGameModal, type GameData } from './src/ui/AddGameModal';
 // Declare global console for ESLint
 declare const console: Console;
 
+/**
+ * Main plugin class for the Game Backlog Obsidian plugin.
+ * Manages game backlog functionality including adding games, updating status, and dashboard generation.
+ */
 export default class GameBacklogPlugin extends Plugin {
   settings: GameBacklogSettings;
   private igdbClient: IgdbClient;
   private hltbClient: HltbClient;
   private steamGridDbClient: SteamGridDbClient;
 
+  /**
+   * Initializes the plugin when loaded by Obsidian.
+   * Sets up commands, settings, and API clients.
+   */
   async onload() {
     await this.loadSettings();
 
@@ -66,6 +74,9 @@ export default class GameBacklogPlugin extends Plugin {
     this.addSettingTab(new GameBacklogSettingTab(this.app, this));
   }
 
+  /**
+   * Initializes API clients with current settings.
+   */
   private initializeClients() {
     this.igdbClient = new IgdbClient(
       this.settings.twitchClientId,
@@ -77,16 +88,25 @@ export default class GameBacklogPlugin extends Plugin {
     );
   }
 
+  /**
+   * Loads plugin settings from Obsidian's data storage.
+   */
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
   }
 
+  /**
+   * Saves plugin settings to Obsidian's data storage.
+   */
   async saveSettings() {
     await this.saveData(this.settings);
     // Reinitialize clients with new API keys
     this.initializeClients();
   }
 
+  /**
+   * Opens the Add Game modal for searching and adding games to the backlog.
+   */
   private openAddGameModal() {
     if (!this.settings.twitchClientId || !this.settings.twitchClientSecret) {
       new Notice(
@@ -109,6 +129,10 @@ export default class GameBacklogPlugin extends Plugin {
     modal.open();
   }
 
+  /**
+   * Creates a new game note in the vault with the provided game data.
+   * @param data - The game data to create a note for
+   */
   private async createGameNote(data: GameData) {
     const fileName = generateFileName(data.title);
     const content = generateGameNote(data);
@@ -136,6 +160,9 @@ export default class GameBacklogPlugin extends Plugin {
     }
   }
 
+  /**
+   * Opens or creates the backlog dashboard file.
+   */
   private async openBacklogDashboard() {
     const dashboardPath = 'Video Game Backlog.md';
     let file = this.app.vault.getAbstractFileByPath(dashboardPath);
@@ -153,6 +180,10 @@ export default class GameBacklogPlugin extends Plugin {
     }
   }
 
+  /**
+   * Generates the content for the backlog dashboard file.
+   * @returns The markdown content for the dashboard
+   */
   private generateBacklogDashboard(): string {
     return `---
 tags:
@@ -238,6 +269,10 @@ SORT file.mtime DESC
 `;
   }
 
+  /**
+   * Updates the status of a game in the backlog.
+   * @param filePath - Path to the game note file
+   */
   private async updateGameStatus(filePath: string) {
     const file = this.app.vault.getAbstractFileByPath(filePath);
     if (!file || !(file instanceof TFile)) return;
@@ -250,20 +285,36 @@ SORT file.mtime DESC
     // Create a simple modal to select new status
     const { Modal, Setting } = await import('obsidian');
 
+    /**
+     * Modal for updating game status.
+     */
     class StatusModal extends Modal {
       private newPriority: string;
+      /** Callback function for when status is updated */
       private onSubmit: (priority: string) => void;
 
+      /**
+       * Creates a modal for updating game status.
+       * @param app - Obsidian app instance
+       * @param priority - Initial priority value
+       * @param onSubmit - Callback when status is updated
+       */
       constructor(
         app: App,
         priority: string,
-        onSubmit: (priority: string) => void
+        onSubmit: /**
+         *
+         */
+        (priority: string) => void
       ) {
         super(app);
         this.newPriority = priority;
         this.onSubmit = onSubmit;
       }
 
+      /**
+       * Sets up the modal content when opened.
+       */
       onOpen() {
         const { contentEl } = this;
         contentEl.createEl('h2', { text: 'Update game status' });
@@ -294,6 +345,9 @@ SORT file.mtime DESC
         });
       }
 
+      /**
+       * Cleans up the modal content when closed.
+       */
       onClose() {
         const { contentEl } = this;
         contentEl.empty();
@@ -310,6 +364,9 @@ SORT file.mtime DESC
     modal.open();
   }
 
+  /**
+   * Cleans up resources when the plugin is unloaded.
+   */
   onunload(): void {
     // Clean up injected styles
     const styleEl = document.getElementById('game-backlog-modal-styles');

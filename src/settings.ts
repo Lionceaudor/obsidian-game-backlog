@@ -36,14 +36,26 @@ export const PRIORITIES = [
 export type Platform = (typeof PLATFORMS)[number];
 export type Priority = (typeof PRIORITIES)[number];
 
+/**
+ * Settings tab for the Game Backlog plugin.
+ * Provides UI for configuring API keys and default values.
+ */
 export class GameBacklogSettingTab extends PluginSettingTab {
   plugin: GameBacklogPlugin;
 
+  /**
+   * Creates a new settings tab.
+   * @param app - Obsidian app instance
+   * @param plugin - Game Backlog plugin instance
+   */
   constructor(app: App, plugin: GameBacklogPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
 
+  /**
+   * Renders the settings UI.
+   */
   display(): void {
     const { containerEl } = this;
 

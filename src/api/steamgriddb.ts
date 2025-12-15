@@ -42,13 +42,27 @@ export interface SgdbLogo extends SgdbGrid {
   type: 'logo';
 }
 
+/**
+ * Client for interacting with the SteamGridDB API.
+ * Handles game search and artwork retrieval.
+ */
 export class SteamGridDbClient {
   private apiKey: string;
 
+  /**
+   * Creates a new SteamGridDB client.
+   * @param apiKey - SteamGridDB API key
+   */
   constructor(apiKey: string) {
     this.apiKey = apiKey;
   }
 
+  /**
+   * Makes a request to the SteamGridDB API.
+   * @param endpoint - API endpoint to call
+   * @returns Parsed response data
+   * @throws {Error} If API key is not configured or request fails
+   */
   private async request<T>(endpoint: string): Promise<T> {
     if (!this.apiKey) {
       throw new Error('SteamGridDB API key not configured');
@@ -71,12 +85,27 @@ export class SteamGridDbClient {
     return data.data as T;
   }
 
+  /**
+   * Searches for games matching the query.
+   * @param query - Search query
+   * @returns Array of matching games
+   */
   async searchGames(query: string): Promise<SgdbGame[]> {
     return this.request<SgdbGame[]>(
       `/search/autocomplete/${encodeURIComponent(query)}`
     );
   }
 
+  /**
+   * Gets grid artwork for a game.
+   * @param gameId - SteamGridDB game identifier
+   * @param options - Filtering options
+   * @param options.styles - Array of style filters
+   * @param options.dimensions - Array of dimension filters
+   * @param options.nsfw - Whether to include NSFW content
+   * @param options.humor - Whether to include humorous content
+   * @returns Array of grid artwork
+   */
   async getGrids(
     gameId: number,
     options?: {
@@ -109,14 +138,29 @@ export class SteamGridDbClient {
     return this.request<SgdbGrid[]>(endpoint);
   }
 
+  /**
+   * Gets hero artwork for a game.
+   * @param gameId - SteamGridDB game identifier
+   * @returns Array of hero artwork
+   */
   async getHeroes(gameId: number): Promise<SgdbHero[]> {
     return this.request<SgdbHero[]>(`/heroes/game/${gameId}`);
   }
 
+  /**
+   * Gets logo artwork for a game.
+   * @param gameId - SteamGridDB game identifier
+   * @returns Array of logo artwork
+   */
   async getLogos(gameId: number): Promise<SgdbLogo[]> {
     return this.request<SgdbLogo[]>(`/logos/game/${gameId}`);
   }
 
+  /**
+   * Gets the best grid artwork for a game based on score.
+   * @param gameId - SteamGridDB game identifier
+   * @returns Best grid artwork or null if not found
+   */
   async getBestGrid(gameId: number): Promise<SgdbGrid | null> {
     try {
       const grids = await this.getGrids(gameId, {

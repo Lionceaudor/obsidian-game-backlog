@@ -2,6 +2,7 @@ import eslint from '@eslint/js';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import importPlugin from 'eslint-plugin-import';
+import jsdocPlugin from 'eslint-plugin-jsdoc';
 import unusedImportsPlugin from 'eslint-plugin-unused-imports';
 import prettierConfig from 'eslint-config-prettier';
 
@@ -20,6 +21,7 @@ export default [
     plugins: {
       '@typescript-eslint': tseslint,
       import: importPlugin,
+      jsdoc: jsdocPlugin,
       'unused-imports': unusedImportsPlugin,
     },
     rules: {
@@ -27,6 +29,38 @@ export default [
       ...tseslint.configs['recommended-requiring-type-checking'].rules,
       ...importPlugin.configs.typescript.rules,
       ...prettierConfig.rules,
+
+      // Code quality enforcement
+      'max-depth': ['error', 3], // Maximum nesting depth of 3
+
+      // JSDoc documentation requirements
+      'jsdoc/require-jsdoc': [
+        'warn',
+        {
+          require: {
+            FunctionDeclaration: true,
+            MethodDefinition: true,
+            ClassDeclaration: true,
+            ArrowFunctionExpression: false,
+            FunctionExpression: false,
+          },
+          contexts: ['TSMethodSignature', 'TSFunctionType'],
+          checkConstructors: false,
+          checkGetters: false,
+          checkSetters: false,
+        },
+      ],
+      'jsdoc/require-description': [
+        'warn',
+        { contexts: ['FunctionDeclaration', 'MethodDefinition'] },
+      ],
+      'jsdoc/require-param': ['warn', { checkDestructured: false }],
+      'jsdoc/require-param-description': 'warn',
+      'jsdoc/require-returns': ['warn', { checkGetters: false }],
+      'jsdoc/require-returns-description': 'warn',
+      'jsdoc/check-param-names': 'error',
+      'jsdoc/check-tag-names': 'error',
+      'jsdoc/check-types': 'off', // TypeScript handles types
 
       // Treat warnings as errors
       '@typescript-eslint/no-unused-vars': 'off',
@@ -90,6 +124,16 @@ export default [
   {
     files: ['**/*.test.ts', '**/*.spec.ts'],
     rules: {
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+    },
+  },
+  {
+    files: ['**/fixtures/**', '**/__mocks__/**'],
+    rules: {
+      'jsdoc/require-jsdoc': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',

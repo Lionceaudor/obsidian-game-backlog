@@ -31,10 +31,15 @@ interface SearchResult {
   displayName: string;
 }
 
+/**
+ * Modal for adding games to the backlog.
+ * Handles game search, selection, and data collection.
+ */
 export class AddGameModal extends Modal {
   private igdbClient: IgdbClient;
   private hltbClient: HltbClient;
   private steamGridDbClient: SteamGridDbClient;
+  /** Callback function for when game is added */
   private onSubmit: (data: GameData) => void;
   private defaultPlatform: Platform;
   private defaultPriority: Priority;
@@ -50,6 +55,16 @@ export class AddGameModal extends Modal {
   private submitButton: HTMLButtonElement | null = null;
   private loadingEl: HTMLElement | null = null;
 
+  /**
+   * Creates a new Add Game modal.
+   * @param app - Obsidian app instance
+   * @param igdbClient - IGDB API client
+   * @param hltbClient - HLTB API client
+   * @param steamGridDbClient - SteamGridDB API client
+   * @param defaultPlatform - Default platform selection
+   * @param defaultPriority - Default priority selection
+   * @param onSubmit - Callback when game is added
+   */
   constructor(
     app: App,
     igdbClient: IgdbClient,
@@ -57,7 +72,10 @@ export class AddGameModal extends Modal {
     steamGridDbClient: SteamGridDbClient,
     defaultPlatform: Platform,
     defaultPriority: Priority,
-    onSubmit: (data: GameData) => void
+    onSubmit: /**
+     *
+     */
+    (data: GameData) => void
   ) {
     super(app);
     this.igdbClient = igdbClient;
@@ -70,6 +88,9 @@ export class AddGameModal extends Modal {
     this.onSubmit = onSubmit;
   }
 
+  /**
+   * Sets up the modal content when opened.
+   */
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
@@ -145,6 +166,9 @@ export class AddGameModal extends Modal {
     this.addStyles();
   }
 
+  /**
+   * Adds CSS styles for the modal.
+   */
   private addStyles() {
     const styleId = 'game-backlog-modal-styles';
     if (document.getElementById(styleId)) return;
@@ -229,6 +253,10 @@ export class AddGameModal extends Modal {
     document.head.appendChild(style);
   }
 
+  /**
+   * Performs a game search using the IGDB API.
+   * @param query - Search query
+   */
   private async performSearch(query: string) {
     if (!query || query.length < 2) {
       this.resultsContainer!.empty();
@@ -253,6 +281,9 @@ export class AddGameModal extends Modal {
     }
   }
 
+  /**
+   * Renders search results in the UI.
+   */
   private renderSearchResults() {
     this.resultsContainer!.empty();
 
@@ -295,6 +326,10 @@ export class AddGameModal extends Modal {
     }
   }
 
+  /**
+   * Handles game selection from search results.
+   * @param game - Selected IGDB game
+   */
   private async selectGame(game: IgdbGame) {
     this.selectedGame = game;
     this.resultsContainer!.empty();
@@ -330,6 +365,10 @@ export class AddGameModal extends Modal {
     this.submitButton!.disabled = false;
   }
 
+  /**
+   * Handles form submission when adding a game.
+   * Fetches additional data and creates the game note.
+   */
   private async handleSubmit() {
     if (!this.selectedGame) {
       new Notice('Please select a game first');
@@ -347,44 +386,18 @@ export class AddGameModal extends Modal {
         throw new Error('Failed to fetch game details');
       }
 
-      // Fetch HLTB data
-      let hltbData: HltbResult | null = null;
-      try {
-        hltbData = await this.hltbClient.searchGame(this.selectedGame.name);
-      } catch (e) {
-        console.warn('HLTB fetch failed:', e);
-      }
-
-      // Get cover URL - prefer SteamGridDB, fallback to IGDB
-      let coverUrl: string | null = null;
-
-      // Try IGDB cover first as fallback
-      if (gameDetails.cover?.image_id) {
-        coverUrl = this.igdbClient.getCoverUrl(gameDetails.cover.image_id, 'cover_big');
-      }
-
-      // Try SteamGridDB for higher quality art
-      try {
-        const sgdbGames = await this.steamGridDbClient.searchGames(this.selectedGame.name);
-        if (sgdbGames.length > 0) {
-          const grid = await this.steamGridDbClient.getBestGrid(sgdbGames[0].id);
-          if (grid) {
-            coverUrl = grid.url;
-          }
-        }
-      } catch (e) {
-        console.warn('SteamGridDB fetch failed, using IGDB cover:', e);
-      }
+      // Fetch additional data in parallel
+      const [hltbData, coverUrl] = await Promise.all([
+        this.fetchHltbData(this.selectedGame.name),
+        this.fetchCoverUrl(gameDetails),
+      ]);
 
       // Calculate efficiency score
       const rating = gameDetails.aggregated_rating
         ? Math.round(gameDetails.aggregated_rating)
         : null;
       const hltbHours = hltbData?.mainStoryHours || null;
-      let efficiency: number | null = null;
-      if (rating && hltbHours && hltbHours > 0) {
-        efficiency = Math.round((rating / hltbHours) * 100) / 100;
-      }
+      const efficiency = this.calculateEfficiency(rating, hltbHours);
 
       const releaseYear = gameDetails.first_release_date
         ? new Date(gameDetails.first_release_date * 1000).getFullYear()
@@ -415,6 +428,64 @@ export class AddGameModal extends Modal {
     }
   }
 
+  /**
+   * Fetches HLTB data for a game.
+   * @param gameName - Name of the game to fetch HLTB data for
+   * @returns HLTB result or null if failed
+   */
+  private async fetchHltbData(gameName: string): Promise<HltbResult | null> {
+    try {
+      return await this.hltbClient.searchGame(gameName);
+    } catch (e) {
+      console.warn('HLTB fetch failed:', e);
+      return null;
+    }
+  }
+
+  /**
+   * Fetches the best cover URL for a game.
+   * @param gameDetails - IGDB game details
+   * @returns Best cover URL or null if not found
+   */
+  private async fetchCoverUrl(gameDetails: IgdbGame): Promise<string | null> {
+    // Try IGDB cover first as fallback
+    let coverUrl: string | null = null;
+    if (gameDetails.cover?.image_id) {
+      coverUrl = this.igdbClient.getCoverUrl(gameDetails.cover.image_id, 'cover_big');
+    }
+
+    // Try SteamGridDB for higher quality art
+    try {
+      const sgdbGames = await this.steamGridDbClient.searchGames(gameDetails.name);
+      if (sgdbGames.length > 0) {
+        const grid = await this.steamGridDbClient.getBestGrid(sgdbGames[0].id);
+        if (grid) {
+          coverUrl = grid.url;
+        }
+      }
+    } catch (e) {
+      console.warn('SteamGridDB fetch failed, using IGDB cover:', e);
+    }
+
+    return coverUrl;
+  }
+
+  /**
+   * Calculates efficiency score (rating / hours).
+   * @param rating - Game rating
+   * @param hltbHours - Main story hours
+   * @returns Efficiency score or null if cannot be calculated
+   */
+  private calculateEfficiency(rating: number | null, hltbHours: number | null): number | null {
+    if (rating && hltbHours && hltbHours > 0) {
+      return Math.round((rating / hltbHours) * 100) / 100;
+    }
+    return null;
+  }
+
+  /**
+   * Cleans up the modal when closed.
+   */
   onClose() {
     const { contentEl } = this;
     contentEl.empty();

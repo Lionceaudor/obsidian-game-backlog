@@ -1,8 +1,4 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## Build Commands
+# Build Commands
 
 ```bash
 npm run dev      # Start dev server with watch mode (esbuild)
@@ -11,17 +7,17 @@ npm run build    # Type-check and build for production
 
 The build outputs `main.js` to the project root. For testing in Obsidian, symlink or copy the project folder to your vault's `.obsidian/plugins/game-backlog/` directory.
 
-## Architecture
+# Architecture
 
 This is an Obsidian plugin that helps users manage their video game backlog. It integrates with three external APIs to fetch game metadata:
 
-### API Clients (`src/api/`)
+## API Clients (`src/api/`)
 
 - **IGDB** (`igdb.ts`): Primary game database. Uses Twitch OAuth for authentication. Provides game metadata, ratings, genres, release dates, and cover images.
 - **HowLongToBeat** (`hltb.ts`): Fetches completion time estimates. Uses web scraping with auth token discovery from the HLTB website.
 - **SteamGridDB** (`steamgriddb.ts`): Fetches high-quality game artwork (grids, heroes, logos).
 
-### Core Flow
+## Core Flow
 
 1. User opens "Add Game" modal via command palette
 2. `AddGameModal` (`src/ui/AddGameModal.ts`) searches IGDB as user types
@@ -30,15 +26,15 @@ This is an Obsidian plugin that helps users manage their video game backlog. It 
 5. `generateGameNote()` (`src/templates/gameNote.ts`) creates markdown note with YAML frontmatter
 6. Notes are tagged with `#game` and `#backlog` for Dataview queries
 
-### Settings (`src/settings.ts`)
+## Settings (`src/settings.ts`)
 
 Stores API credentials (Twitch Client ID/Secret, SteamGridDB API Key) and default values for platform/priority dropdowns.
 
-### Generated Dashboard
+## Generated Dashboard
 
 The plugin creates a Dataview-powered dashboard at `Video Game Backlog.md` that displays games organized by priority and platform, sorted by efficiency score.
 
-## Frontmatter Schema
+# Frontmatter Schema
 
 Game notes use this frontmatter structure:
 
@@ -57,18 +53,18 @@ added: '2024-01-15'
 tags: [game, backlog]
 ```
 
-## Obsidian Plugin Submission Requirements
+# Obsidian Plugin Submission Requirements
 
 When modifying this plugin, ensure all changes comply with Obsidian's official plugin submission guidelines. The plugin must pass review before being listed in the community plugin directory.
 
-### Core Principles
+## Core Principles
 
 1. **No Duplicate Functionality**: Don't recreate features that already exist in other established plugins unless you offer significant improvements
 2. **Lasting Benefits**: The plugin must provide ongoing value, not just one-time setup utilities
 3. **Desktop-Only Features**: If a feature only works on desktop, clearly document this limitation
 4. **No Safe Mode Bypass**: Never create functionality that circumvents Obsidian's safe mode protections
 
-### Security Requirements (Critical)
+## Security Requirements (Critical)
 
 These are **strictly enforced** and will cause rejection:
 
@@ -80,7 +76,125 @@ These are **strictly enforced** and will cause rejection:
 - **Sanitize all user inputs**: Prevent XSS, command injection, and path traversal attacks
 - **Use Obsidian's `requestUrl()`**: For all network requests instead of `fetch()` directly
 
-### Code Quality Standards
+## Code Quality Standards
+
+### Function Documentation (Required)
+
+**All functions must have JSDoc comments.** This is enforced by ESLint via `eslint-plugin-jsdoc`. Documentation must include:
+
+- **Description**: What the function does
+- **`@param`**: For each parameter (with type and description)
+- **`@returns`**: What the function returns (if not void)
+- **`@throws`**: Any exceptions that may be thrown (if applicable)
+
+```typescript
+// ✅ CORRECT: Properly documented function
+/**
+ * Fetches game metadata from IGDB by game ID.
+ * @param gameId - The IGDB game identifier
+ * @param includeArtwork - Whether to fetch additional artwork
+ * @returns The game metadata or null if not found
+ * @throws {AuthenticationError} If IGDB credentials are invalid
+ */
+async function fetchGameById(
+  gameId: number,
+  includeArtwork: boolean
+): Promise<GameMetadata | null> {
+  // implementation
+}
+
+// ❌ WRONG: Missing documentation
+async function fetchGameById(
+  gameId: number,
+  includeArtwork: boolean
+): Promise<GameMetadata | null> {
+  // implementation
+}
+```
+
+Private helper functions with obvious purpose may use a shorter description:
+
+```typescript
+// ✅ ACCEPTABLE: Short doc for simple private helpers
+/** Converts rating to percentage string. */
+function formatRating(rating: number): string {
+  return `${Math.round(rating)}%`;
+}
+```
+
+### Maximum Nesting Depth (≤ 3 levels)
+
+**Code must not exceed 3 levels of nesting.** This is enforced by ESLint's `max-depth` rule. Deeply nested code is harder to read and maintain.
+
+```typescript
+// ✅ CORRECT: Flat structure using early returns
+/**
+ * Processes a game entry and returns its display name.
+ * @param game - The game object to process
+ * @returns The formatted display name
+ */
+function processGame(game: Game): string {
+  if (!game) {
+    return 'Unknown';
+  }
+
+  if (!game.title) {
+    return `Game #${game.id}`;
+  }
+
+  const year = game.releaseYear ? ` (${game.releaseYear})` : '';
+  return `${game.title}${year}`;
+}
+
+// ❌ WRONG: Exceeds max nesting depth (4+ levels)
+function processGame(game: Game): string {
+  if (game) {
+    // Level 1
+    if (game.title) {
+      // Level 2
+      if (game.releaseYear) {
+        // Level 3
+        if (game.releaseYear > 2000) {
+          // Level 4 - VIOLATION!
+          return `${game.title} (${game.releaseYear})`;
+        }
+      }
+    }
+  }
+  return 'Unknown';
+}
+```
+
+**Strategies to reduce nesting:**
+
+1. **Early returns**: Exit the function early for edge cases
+2. **Extract functions**: Move nested logic into separate well-named functions
+3. **Use guard clauses**: Check preconditions at the start
+4. **Invert conditions**: Flip `if` statements to reduce nesting
+
+```typescript
+// ✅ CORRECT: Extract complex nested logic into helper functions
+/**
+ * Validates and saves a game to the vault.
+ * @param game - The game to save
+ * @returns True if save was successful
+ */
+async function saveGame(game: Game): Promise<boolean> {
+  if (!this.validateGame(game)) {
+    return false;
+  }
+
+  const formattedGame = this.formatGameForStorage(game);
+  return await this.writeToVault(formattedGame);
+}
+
+/** Validates required game fields. */
+private validateGame(game: Game): boolean {
+  return Boolean(game?.title && game?.igdbId);
+}
+```
+
+### API and Request Standards
 
 ```typescript
 // ✅ CORRECT: Use Obsidian's request API
@@ -93,6 +207,10 @@ const response = await fetch('https://api.example.com/data');
 
 ```typescript
 // ✅ CORRECT: Async/await with proper error handling
+/**
+ * Loads data from the API client.
+ * @returns The loaded data or null on failure
+ */
 async function loadData(): Promise<Data | null> {
   try {
     const result = await this.apiClient.fetch();
@@ -112,7 +230,7 @@ function loadData() {
 }
 ```
 
-### API & Network Requirements
+## API & Network Requirements
 
 1. **API keys must be user-provided**: The plugin requires Twitch/IGDB credentials configured in settings - this is compliant
 2. **Graceful degradation**: If an optional API (SteamGridDB) fails, the plugin should still function
@@ -120,21 +238,21 @@ function loadData() {
 4. **Caching**: Cache API responses where appropriate to reduce unnecessary requests
 5. **Timeout handling**: All network requests must have reasonable timeouts
 
-### Performance Requirements
+## Performance Requirements
 
 - **No blocking the main thread**: All I/O operations must be async
 - **Efficient DOM updates**: Minimize reflows and repaints in modals/views
 - **Clean up on unload**: Remove all event listeners, intervals, and observers in `onunload()`
 - **Lazy loading**: Don't load heavy resources until needed
 
-### Privacy & User Consent
+## Privacy & User Consent
 
 - **Transparent data usage**: Users must know what data is sent to external APIs
 - **No analytics/telemetry**: Unless explicitly disclosed and user-consented
 - **Local-first**: Store user data in the vault, not on external servers
 - **API credentials security**: Never log or expose API credentials
 
-### Mobile Compatibility
+## Mobile Compatibility
 
 This plugin should work on mobile where possible:
 
@@ -143,14 +261,14 @@ This plugin should work on mobile where possible:
 - Test touch interactions in modals
 - Consider smaller screen sizes in UI design
 
-### UI/UX Guidelines
+## UI/UX Guidelines
 
 - **Follow Obsidian conventions**: Use standard modal patterns, settings tabs, and notices
 - **Accessible**: Support keyboard navigation and screen readers
 - **Responsive**: UI should work at various window sizes
 - **Non-intrusive**: Don't show modals/notices unless user-initiated or critical
 
-### Testing Requirements
+## Testing Requirements
 
 Before submitting updates:
 
@@ -161,7 +279,7 @@ Before submitting updates:
 5. Test on mobile if making UI changes
 6. Verify API error states are handled gracefully
 
-### Changelog Maintenance
+## Changelog Maintenance
 
 When making changes to the codebase, **always update `CHANGELOG.md`** to document your work:
 
@@ -192,16 +310,16 @@ Example entry:
 
 The changelog follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format and [Semantic Versioning](https://semver.org/).
 
-### Manifest & Release Requirements
+## Manifest & Release Requirements
 
 The `manifest.json` must include:
 
 - Valid semver version
-- Accurate `minAppVersion` (currently requires Obsidian 0.15.0+)
+- Accurate `minAppVersion` (currently requires Obsidian 1.10.6+)
 - Correct `author` and `authorUrl`
 - Clear `description`
 
-### What Will Cause Rejection
+## What Will Cause Rejection
 
 - Dynamic code execution (eval, constructing functions from strings)
 - Loading remote JavaScript

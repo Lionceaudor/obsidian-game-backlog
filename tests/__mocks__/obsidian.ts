@@ -15,13 +15,11 @@ export const requestUrl = vi.fn().mockImplementation((options) => {
 });
 
 // Mock Notice for notifications - using vi.fn() so we can spy on calls
-export const Notice = vi.fn().mockImplementation(function (
-  this: any,
-  message: string,
-  timeout?: number
-) {
-  this.message = message;
-  this.timeout = timeout;
+export const Notice = vi.fn().mockImplementation((message: string, timeout?: number) => {
+  return {
+    message,
+    timeout,
+  };
 });
 
 // Mock Plugin base class
