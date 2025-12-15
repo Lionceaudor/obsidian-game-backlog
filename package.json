@@ -1,0 +1,61 @@
+{
+  "type": "module",
+  "name": "obsidian-game-backlog",
+  "version": "1.0.0",
+  "description": "Video game backlog manager for Obsidian with IGDB, HLTB, and SteamGridDB integration",
+  "main": "main.js",
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "git add"
+    ],
+    "*.{js,jsx,json,md,yml,yaml}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "version": "node version-bump.mjs && git add manifest.json versions.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --ext .ts --max-warnings 0",
+    "lint:fix": "eslint . --ext .ts --fix --max-warnings 0",
+    "lint:src": "eslint src --ext .ts --max-warnings 0",
+    "lint:src:fix": "eslint src --ext .ts --fix --max-warnings 0",
+    "prepare": "husky install"
+  },
+  "keywords": [
+    "obsidian",
+    "game",
+    "backlog",
+    "hltb",
+    "rawg"
+  ],
+  "author": "Jacob Pyke",
+  "license": "MIT",
+  "devDependencies": {
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0",
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.49.0",
+    "@typescript-eslint/parser": "^8.49.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "builtin-modules": "^3.3.0",
+    "esbuild": "^0.19.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-unused-imports": "^4.3.0",
+    "husky": "^9.1.7",
+    "jsdom": "^27.3.0",
+    "lint-staged": "^16.2.7",
+    "obsidian": "latest",
+    "prettier": "^3.7.4",
+    "tslib": "^2.6.0",
+    "typescript": "^5.3.0",
+    "vitest": "^2.1.8"
+  }
+}
