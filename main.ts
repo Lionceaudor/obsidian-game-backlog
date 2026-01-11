@@ -8,6 +8,7 @@ import type { GameBacklogSettings, Platform, Priority } from './src/settings';
 import { GameBacklogSettingTab, DEFAULT_SETTINGS } from './src/settings';
 import { generateGameNote, generateFileName } from './src/templates/gameNote';
 import { AddGameModal, type GameData } from './src/ui/AddGameModal';
+import { translate } from './src/i18n';
 
 // Declare global console for ESLint
 declare const console: Console;
@@ -35,7 +36,7 @@ export default class GameBacklogPlugin extends Plugin {
     // Add command to add a game
     this.addCommand({
       id: 'add-game-to-backlog',
-      name: 'Add game to backlog',
+      name: translate(this.settings.language, 'cmd_add_game'),
       callback: () => {
         this.openAddGameModal();
       },
@@ -44,7 +45,7 @@ export default class GameBacklogPlugin extends Plugin {
     // Add command to open backlog dashboard
     this.addCommand({
       id: 'open-game-backlog',
-      name: 'Open game backlog dashboard',
+      name: translate(this.settings.language, 'cmd_open_backlog'),
       callback: async () => {
         await this.openBacklogDashboard();
       },
@@ -53,7 +54,7 @@ export default class GameBacklogPlugin extends Plugin {
     // Add command to update game status
     this.addCommand({
       id: 'update-game-status',
-      name: 'Update current game status',
+      name: translate(this.settings.language, 'cmd_update_status'),
       checkCallback: (checking: boolean) => {
         const file = this.app.workspace.getActiveFile();
         if (file) {
@@ -109,9 +110,7 @@ export default class GameBacklogPlugin extends Plugin {
    */
   private openAddGameModal() {
     if (!this.settings.twitchClientId || !this.settings.twitchClientSecret) {
-      new Notice(
-        'Please configure your Twitch Client ID and Secret in the Game Backlog settings'
-      );
+      new Notice(translate(this.settings.language, 'missing_twitch_keys'));
       return;
     }
 
@@ -125,6 +124,8 @@ export default class GameBacklogPlugin extends Plugin {
       async (data: GameData) => {
         await this.createGameNote(data);
       }
+      ,
+      this.settings.language
     );
     modal.open();
   }
@@ -135,12 +136,12 @@ export default class GameBacklogPlugin extends Plugin {
    */
   private async createGameNote(data: GameData) {
     const fileName = generateFileName(data.title);
-    const content = generateGameNote(data);
+    const content = generateGameNote(data, this.settings.language);
 
     // Check if file already exists
     const existingFile = this.app.vault.getAbstractFileByPath(fileName);
     if (existingFile && existingFile instanceof TFile) {
-      new Notice(`A note for "${data.title}" already exists`);
+      new Notice(translate(this.settings.language, 'note_exists_notice').replace('{title}', data.title));
       // Open the existing file
       const leaf = this.app.workspace.getLeaf(false);
       await leaf.openFile(existingFile);
@@ -149,14 +150,14 @@ export default class GameBacklogPlugin extends Plugin {
 
     try {
       const file = await this.app.vault.create(fileName, content);
-      new Notice(`Added "${data.title}" to your backlog!`);
+      new Notice(translate(this.settings.language, 'added_note_notice').replace('{title}', data.title));
 
       // Open the new note
       const leaf = this.app.workspace.getLeaf(false);
       await leaf.openFile(file);
     } catch (error) {
       console.error('Failed to create game note:', error);
-      new Notice('Failed to create game note. Check console for details.');
+      new Notice(translate(this.settings.language, 'create_note_failed'));
     }
   }
 
@@ -171,7 +172,7 @@ export default class GameBacklogPlugin extends Plugin {
       // Create the dashboard if it doesn't exist
       const content = this.generateBacklogDashboard();
       file = await this.app.vault.create(dashboardPath, content);
-      new Notice('Created Video Game Backlog dashboard');
+      new Notice(translate(this.settings.language, 'dashboard_created_notice'));
     }
 
     const leaf = this.app.workspace.getLeaf(false);
@@ -185,16 +186,71 @@ export default class GameBacklogPlugin extends Plugin {
    * @returns The markdown content for the dashboard
    */
   private generateBacklogDashboard(): string {
-    return `---
+    const lang = this.settings.language;
+
+    // translated templates
+    const summaryT = translate(lang, 'dashboard_summary');
+    const nowPlayingFmt = translate(lang, 'dashboard_now_playing_format');
+    const upNextDesc = translate(lang, 'dashboard_up_next_desc');
+    const listFull = translate(lang, 'dashboard_list_format_full');
+    const listNoRating = translate(lang, 'dashboard_list_format_no_rating');
+    const listCompleted = translate(lang, 'dashboard_list_format_completed');
+    const tableGame = translate(lang, 'table_game');
+    const tableRating = translate(lang, 'table_rating');
+    const tableTime = translate(lang, 'table_time');
+    const tableValue = translate(lang, 'table_value');
+    const tableOn = translate(lang, 'table_on');
+
+    // helper: convert a format string with placeholders into a dataview JS expression
+      const toExpr = (fmt: string) => {
+        const parts: string[] = [];
+        const re = /\{(title|platform|hours|rating|backlogCount|totalHours|playing|completed)\}/g;
+        let last = 0;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec(fmt)) !== null) {
+          if (m.index > last) {
+            parts.push(JSON.stringify(fmt.slice(last, m.index)));
+          }
+          const key = m[1];
+          if (key === 'title') {
+            parts.push('link(file.link, title)');
+          } else if (key === 'platform') {
+            parts.push('platform');
+          } else if (key === 'hours') {
+            parts.push('hltb_hours');
+          } else if (key === 'rating') {
+            parts.push('rating');
+          } else if (key === 'backlogCount') {
+            parts.push('backlogCount');
+          } else if (key === 'totalHours') {
+            parts.push('totalHours');
+          } else if (key === 'playing') {
+            parts.push('playing');
+          } else if (key === 'completed') {
+            parts.push('completed');
+          }
+          last = re.lastIndex;
+        }
+        if (last < fmt.length) parts.push(JSON.stringify(fmt.slice(last)));
+        return parts.join(' + ');
+      };
+
+    const nowPlayingExpr = toExpr(nowPlayingFmt);
+    const mustPlayExpr = toExpr(listFull);
+    const eventuallyExpr = toExpr(listNoRating);
+    const completedExpr = toExpr(listCompleted);
+      const summaryExpr = toExpr(summaryT);
+
+    const content = `---
 tags:
   - dashboard
   - gaming
 obsidianUIMode: preview
 ---
 
-# Video Game Backlog
+# ${translate(lang, 'dashboard_title')}
 
-## At a Glance
+## ${translate(lang, 'dashboard_at_a_glance')}
 
 \`\`\`dataviewjs
 const games = dv.pages('#game');
@@ -204,32 +260,32 @@ const totalHours = Math.round(backlog.array().reduce((sum, p) => sum + (p.hltb_h
 const completed = games.where(p => p.priority === "Completed").length;
 const playing = games.where(p => p.priority === "Playing").length;
 
-dv.paragraph(\`**\${backlogCount}** games in backlog · **\${totalHours}h** to clear · **\${playing}** now playing · **\${completed}** completed\`);
+  dv.paragraph(${summaryExpr});
 \`\`\`
 
 ---
 
-## Now Playing
+## ${translate(lang, 'dashboard_now_playing')}
 
 \`\`\`dataview
-LIST WITHOUT ID "**" + title + "** on " + platform + " (" + hltb_hours + "h remaining)"
+LIST WITHOUT ID ${nowPlayingExpr}
 FROM #game
 WHERE priority = "Playing"
 \`\`\`
 
 ---
 
-## Up Next (Best Value)
+## ${translate(lang, 'dashboard_up_next')}
 
-*Highest rated games you can finish quickly*
+*${upNextDesc}*
 
 \`\`\`dataview
 TABLE WITHOUT ID
-  link(file.link, title) AS "Game",
-  rating AS "Rating",
-  hltb_hours + "h" AS "Time",
-  efficiency AS "Value",
-  platform AS "On"
+  link(file.link, title) AS "${tableGame}",
+  rating AS "${tableRating}",
+  hltb_hours + "h" AS "${tableTime}",
+  efficiency AS "${tableValue}",
+  platform AS "${tableOn}"
 FROM #game
 WHERE priority = "Must Play"
 SORT efficiency DESC
@@ -238,19 +294,19 @@ LIMIT 5
 
 ---
 
-## The Backlog
+## ${translate(lang, 'dashboard_the_backlog')}
 
-### Must Play
+### ${translate(lang, 'dashboard_must_play')}
 \`\`\`dataview
-LIST WITHOUT ID link(file.link, title) + " — " + rating + "/100, " + hltb_hours + "h (" + platform + ")"
+LIST WITHOUT ID ${mustPlayExpr}
 FROM #game
 WHERE priority = "Must Play"
 SORT efficiency DESC
 \`\`\`
 
-### Eventually
+### ${translate(lang, 'dashboard_eventually')}
 \`\`\`dataview
-LIST WITHOUT ID link(file.link, title) + " — " + hltb_hours + "h (" + platform + ")"
+LIST WITHOUT ID ${eventuallyExpr}
 FROM #game
 WHERE priority = "Will Get Around To"
 SORT efficiency DESC
@@ -258,15 +314,21 @@ SORT efficiency DESC
 
 ---
 
-## Completed
+## ${translate(lang, 'dashboard_completed')}
 
 \`\`\`dataview
-LIST WITHOUT ID link(file.link, title) + " (" + rating + "/100)"
+LIST WITHOUT ID ${completedExpr}
 FROM #game
 WHERE priority = "Completed"
 SORT file.mtime DESC
 \`\`\`
 `;
+
+    // Replace JSON-encoded placeholders for dataview variables
+    return content.replace(/"\\\$\{backlogCount\}"/g, '**${backlogCount}**')
+      .replace(/"\\\$\{totalHours\}"/g, '**${totalHours}h**')
+      .replace(/"\\\$\{playing\}"/g, '**${playing}**')
+      .replace(/"\\\$\{completed\}"/g, '**${completed}**');
   }
 
   /**
@@ -290,6 +352,7 @@ SORT file.mtime DESC
      */
     class StatusModal extends Modal {
       private newPriority: string;
+      private language: string;
       /** Callback function for when status is updated */
       private onSubmit: (priority: string) => void;
 
@@ -305,11 +368,13 @@ SORT file.mtime DESC
         onSubmit: /**
          *
          */
-        (priority: string) => void
+        (priority: string) => void,
+        language = 'en'
       ) {
         super(app);
         this.newPriority = priority;
         this.onSubmit = onSubmit;
+        this.language = language;
       }
 
       /**
@@ -317,17 +382,17 @@ SORT file.mtime DESC
        */
       onOpen() {
         const { contentEl } = this;
-        contentEl.createEl('h2', { text: 'Update game status' });
+        contentEl.createEl('h2', { text: translate(this.language, 'status_modal_title') });
 
-        new Setting(contentEl).setName('Status').addDropdown((dropdown) => {
+        new Setting(contentEl).setName(translate(this.language, 'status_label')).addDropdown((dropdown) => {
           const priorities = [
-            'Must Play',
-            'Will Get Around To',
-            'Playing',
-            'Completed',
-            'Dropped',
-          ];
-          priorities.forEach((p) => dropdown.addOption(p, p));
+              'Must Play',
+              'Will Get Around To',
+              'Playing',
+              'Completed',
+              'Dropped',
+            ];
+            priorities.forEach((p) => dropdown.addOption(p, translate(this.language, `priority_${p.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`)));
           dropdown.setValue(this.newPriority);
           dropdown.onChange((value) => {
             this.newPriority = value;
@@ -336,7 +401,7 @@ SORT file.mtime DESC
 
         new Setting(contentEl).addButton((btn) => {
           btn
-            .setButtonText('Update')
+            .setButtonText(translate(this.language, 'update_button'))
             .setCta()
             .onClick(() => {
               this.onSubmit(this.newPriority);
@@ -359,9 +424,19 @@ SORT file.mtime DESC
       await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
         frontmatter.priority = priority;
       });
-      new Notice(`Updated status to "${priority}"`);
+      new Notice(`${translate(this.settings.language, 'updated_status_notice')} "${priority}"`);
     });
-    modal.open();
+    // pass language for translations inside the modal
+    const _modal = modal as any;
+    // If constructor supports language, create with language (older TS may have already created it)
+    // For safety, recreate properly with language
+    const modalWithLang = new (StatusModal as any)(this.app, initialPriority, async (priority: string) => {
+      await this.app.fileManager.processFrontMatter(file, (frontmatter: any) => {
+        frontmatter.priority = priority;
+      });
+      new Notice(`${translate(this.settings.language, 'updated_status_notice')} "${priority}"`);
+    }, this.settings.language);
+    modalWithLang.open();
   }
 
   /**

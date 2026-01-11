@@ -11,6 +11,7 @@ import { HltbClient, HltbResult } from '../api/hltb';
 import { IgdbClient, IgdbGame } from '../api/igdb';
 import { SteamGridDbClient } from '../api/steamgriddb';
 import { PLATFORMS, PRIORITIES, Platform, Priority } from '../settings';
+import { translate, translatePriority } from '../i18n';
 
 export interface GameData {
   title: string;
@@ -43,6 +44,7 @@ export class AddGameModal extends Modal {
   private onSubmit: (data: GameData) => void;
   private defaultPlatform: Platform;
   private defaultPriority: Priority;
+  private language: string;
 
   private selectedGame: IgdbGame | null = null;
   private searchResults: SearchResult[] = [];
@@ -75,7 +77,8 @@ export class AddGameModal extends Modal {
     onSubmit: /**
      *
      */
-    (data: GameData) => void
+    (data: GameData) => void,
+    language = 'en'
   ) {
     super(app);
     this.igdbClient = igdbClient;
@@ -86,6 +89,7 @@ export class AddGameModal extends Modal {
     this.platform = defaultPlatform;
     this.priority = defaultPriority;
     this.onSubmit = onSubmit;
+    this.language = language;
   }
 
   /**
@@ -96,15 +100,15 @@ export class AddGameModal extends Modal {
     contentEl.empty();
     contentEl.addClass('game-backlog-modal');
 
-    contentEl.createEl('h2', { text: 'Add Game to Backlog' });
+    contentEl.createEl('h2', { text: translate(this.language, 'modal_add_game_title') });
 
     // Search input
     new Setting(contentEl)
-      .setName('Search for a game')
-      .setDesc('Type to search IGDB database')
+      .setName(translate(this.language, 'search_for_game'))
+      .setDesc(translate(this.language, 'search_for_game_desc'))
       .addText((text) => {
         this.searchInput = text;
-        text.setPlaceholder('Enter game title...');
+        text.setPlaceholder(translate(this.language, 'search_placeholder'));
         text.inputEl.addEventListener(
           'input',
           debounce(async () => {
@@ -126,8 +130,8 @@ export class AddGameModal extends Modal {
 
     // Platform dropdown
     new Setting(contentEl)
-      .setName('Platform')
-      .setDesc('Which platform will you play this on?')
+      .setName(translate(this.language, 'platform_label'))
+      .setDesc(translate(this.language, 'platform_desc'))
       .addDropdown((dropdown) => {
         PLATFORMS.forEach((p) => dropdown.addOption(p, p));
         dropdown.setValue(this.defaultPlatform);
@@ -138,10 +142,10 @@ export class AddGameModal extends Modal {
 
     // Priority dropdown
     new Setting(contentEl)
-      .setName('Priority')
-      .setDesc('How likely are you to play this?')
+      .setName(translate(this.language, 'priority_label'))
+      .setDesc(translate(this.language, 'priority_desc'))
       .addDropdown((dropdown) => {
-        PRIORITIES.forEach((p) => dropdown.addOption(p, p));
+        PRIORITIES.forEach((p) => dropdown.addOption(p, translatePriority(this.language, p)));
         dropdown.setValue(this.defaultPriority);
         dropdown.onChange((value) => {
           this.priority = value as Priority;
@@ -151,12 +155,12 @@ export class AddGameModal extends Modal {
     // Loading indicator
     this.loadingEl = contentEl.createDiv({ cls: 'game-loading' });
     this.loadingEl.style.display = 'none';
-    this.loadingEl.setText('Fetching game data...');
+    this.loadingEl.setText(translate(this.language, 'fetching_game_data'));
 
     // Submit button
     const buttonContainer = contentEl.createDiv({ cls: 'modal-button-container' });
     this.submitButton = buttonContainer.createEl('button', {
-      text: 'Add Game',
+      text: translate(this.language, 'add_game_button'),
       cls: 'mod-cta',
     });
     this.submitButton.disabled = true;
@@ -277,7 +281,7 @@ export class AddGameModal extends Modal {
       this.renderSearchResults();
     } catch (error) {
       console.error('Search error:', error);
-      new Notice('Failed to search games. Check your Twitch API credentials.');
+      new Notice(translate(this.language, 'search_failed_notice'));
     }
   }
 
@@ -313,7 +317,7 @@ export class AddGameModal extends Modal {
         meta.push(year.toString());
       }
       if (result.igdbGame.aggregated_rating) {
-        meta.push(`Rating: ${Math.round(result.igdbGame.aggregated_rating)}`);
+        meta.push(`${translate(this.language, 'rating_label')}: ${Math.round(result.igdbGame.aggregated_rating)}`);
       }
       if (result.igdbGame.genres?.length) {
         meta.push(result.igdbGame.genres.slice(0, 2).map((g) => g.name).join(', '));
@@ -355,7 +359,7 @@ export class AddGameModal extends Modal {
       meta.push(year.toString());
     }
     if (game.aggregated_rating) {
-      meta.push(`Critic Rating: ${Math.round(game.aggregated_rating)}`);
+      meta.push(`${translate(this.language, 'critic_rating')}: ${Math.round(game.aggregated_rating)}`);
     }
     if (game.genres?.length) {
       meta.push(game.genres.map((g) => g.name).join(', '));
@@ -371,13 +375,13 @@ export class AddGameModal extends Modal {
    */
   private async handleSubmit() {
     if (!this.selectedGame) {
-      new Notice('Please select a game first');
+      new Notice(translate(this.language, 'please_select_game'));
       return;
     }
 
     this.loadingEl!.style.display = 'block';
     this.submitButton!.disabled = true;
-    this.submitButton!.setText('Adding...');
+    this.submitButton!.setText(translate(this.language, 'adding_button'));
 
     try {
       // Fetch full game details from IGDB
@@ -421,10 +425,10 @@ export class AddGameModal extends Modal {
       this.close();
     } catch (error) {
       console.error('Failed to add game:', error);
-      new Notice('Failed to fetch game data. Please try again.');
+      new Notice(translate(this.language, 'fetch_failed_notice'));
       this.loadingEl!.style.display = 'none';
       this.submitButton!.disabled = false;
-      this.submitButton!.setText('Add Game');
+      this.submitButton!.setText(translate(this.language, 'add_game_button'));
     }
   }
 

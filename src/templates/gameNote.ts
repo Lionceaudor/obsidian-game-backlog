@@ -1,13 +1,14 @@
 import { GameData } from '../ui/AddGameModal';
+import { translate } from '../i18n';
 
 /**
  * Generates a complete game note with frontmatter and body content.
  * @param data - Game data to include in the note
  * @returns Complete markdown content for the game note
  */
-export function generateGameNote(data: GameData): string {
+export function generateGameNote(data: GameData, language = 'en'): string {
   const frontmatter = generateFrontmatter(data);
-  const body = generateBody(data);
+  const body = generateBody(data, language);
   return `${frontmatter}\n${body}`;
 }
 
@@ -75,7 +76,7 @@ function generateFrontmatter(data: GameData): string {
  * @param data - Game data to include in the body
  * @returns Markdown body content
  */
-function generateBody(data: GameData): string {
+function generateBody(data: GameData, language = 'en'): string {
   const sections: string[] = [];
 
   // Cover image
@@ -87,17 +88,17 @@ function generateBody(data: GameData): string {
   // Game info summary
   const infoParts: string[] = [];
   if (data.rating !== null) {
-    infoParts.push(`**Rating:** ${data.rating}`);
+    infoParts.push(`**${translate(language, 'rating_label')}:** ${data.rating}`);
   }
   if (data.hltbHours !== null) {
-    infoParts.push(`**HLTB:** ${data.hltbHours}h`);
+    infoParts.push(`**${translate(language, 'hltb_label')}:** ${data.hltbHours}h`);
   }
   if (data.efficiency !== null) {
-    infoParts.push(`**Efficiency:** ${data.efficiency}`);
+    infoParts.push(`**${translate(language, 'efficiency_label')}:** ${data.efficiency}`);
   }
-  infoParts.push(`**Platform:** ${data.platform}`);
+  infoParts.push(`**${translate(language, 'platform_label_short')}:** ${data.platform}`);
   if (data.releaseYear) {
-    infoParts.push(`**Year:** ${data.releaseYear}`);
+    infoParts.push(`**${translate(language, 'year_label')}:** ${data.releaseYear}`);
   }
 
   if (infoParts.length > 0) {
@@ -107,7 +108,7 @@ function generateBody(data: GameData): string {
 
   // Description
   if (data.description) {
-    sections.push('## Description');
+    sections.push(`## ${translate(language, 'description_heading')}`);
     sections.push('');
     // Truncate description if too long and clean it up
     let desc = data.description;
@@ -122,7 +123,7 @@ function generateBody(data: GameData): string {
   }
 
   // Notes section for user
-  sections.push('## Notes');
+  sections.push(`## ${translate(language, 'notes_heading')}`);
   sections.push('');
   sections.push('');
 

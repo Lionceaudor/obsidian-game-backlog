@@ -1,6 +1,7 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 
 import GameBacklogPlugin from '../main';
+import { translate, LANG_NAMES, translatePriority } from './i18n';
 
 export interface GameBacklogSettings {
   twitchClientId: string;
@@ -8,6 +9,7 @@ export interface GameBacklogSettings {
   steamGridDbApiKey: string;
   defaultPlatform: string;
   defaultPriority: string;
+  language: string;
 }
 
 export const DEFAULT_SETTINGS: GameBacklogSettings = {
@@ -16,6 +18,7 @@ export const DEFAULT_SETTINGS: GameBacklogSettings = {
   steamGridDbApiKey: '',
   defaultPlatform: 'Steam Deck',
   defaultPriority: 'Will Get Around To',
+  language: 'en',
 };
 
 export const PLATFORMS = [
@@ -62,23 +65,23 @@ export class GameBacklogSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     // API Keys Section
-    new Setting(containerEl).setName('API credentials').setHeading();
+    new Setting(containerEl).setName(translate(this.plugin.settings.language, 'api_credentials')).setHeading();
 
     new Setting(containerEl)
-      .setName('Twitch Client ID')
+      .setName(translate(this.plugin.settings.language, 'twitch_client_id'))
       .setDesc(
         createFragment((frag) => {
-          frag.appendText('Create an app at ');
+          frag.appendText(translate(this.plugin.settings.language, 'twitch_client_id_desc_prefix'));
           frag.createEl('a', {
             text: 'dev.twitch.tv/console/apps',
             href: 'https://dev.twitch.tv/console/apps',
           });
-          frag.appendText(' to get your Client ID (used for IGDB API)');
+          frag.appendText(translate(this.plugin.settings.language, 'twitch_client_id_desc_suffix'));
         })
       )
       .addText((text) =>
         text
-          .setPlaceholder('Enter your Twitch Client ID')
+          .setPlaceholder(translate(this.plugin.settings.language, 'twitch_client_id_placeholder'))
           .setValue(this.plugin.settings.twitchClientId)
           .onChange(async (value) => {
             this.plugin.settings.twitchClientId = value;
@@ -87,11 +90,11 @@ export class GameBacklogSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Twitch Client Secret')
-      .setDesc("Your Twitch application's Client Secret")
+      .setName(translate(this.plugin.settings.language, 'twitch_client_secret'))
+      .setDesc(translate(this.plugin.settings.language, 'twitch_client_secret_desc'))
       .addText((text) => {
         text
-          .setPlaceholder('Enter your Twitch Client Secret')
+          .setPlaceholder(translate(this.plugin.settings.language, 'twitch_client_secret_placeholder'))
           .setValue(this.plugin.settings.twitchClientSecret)
           .onChange(async (value) => {
             this.plugin.settings.twitchClientSecret = value;
@@ -101,10 +104,10 @@ export class GameBacklogSettingTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName('SteamGridDB API Key')
+      .setName(translate(this.plugin.settings.language, 'steamgriddb_api_key'))
       .setDesc(
         createFragment((frag) => {
-          frag.appendText('Get your API key from ');
+          frag.appendText(translate(this.plugin.settings.language, 'steamgriddb_api_key_desc_prefix'));
           frag.createEl('a', {
             text: 'steamgriddb.com/profile/preferences/api',
             href: 'https://www.steamgriddb.com/profile/preferences/api',
@@ -113,7 +116,7 @@ export class GameBacklogSettingTab extends PluginSettingTab {
       )
       .addText((text) =>
         text
-          .setPlaceholder('Enter your SteamGridDB API key')
+          .setPlaceholder(translate(this.plugin.settings.language, 'steamgriddb_api_key_placeholder'))
           .setValue(this.plugin.settings.steamGridDbApiKey)
           .onChange(async (value) => {
             this.plugin.settings.steamGridDbApiKey = value;
@@ -122,11 +125,11 @@ export class GameBacklogSettingTab extends PluginSettingTab {
       );
 
     // Defaults Section
-    new Setting(containerEl).setName('Defaults').setHeading();
+    new Setting(containerEl).setName(translate(this.plugin.settings.language, 'defaults_heading')).setHeading();
 
     new Setting(containerEl)
-      .setName('Default Platform')
-      .setDesc('The platform selected by default when adding a new game')
+      .setName(translate(this.plugin.settings.language, 'default_platform'))
+      .setDesc(translate(this.plugin.settings.language, 'default_platform_desc'))
       .addDropdown((dropdown) => {
         PLATFORMS.forEach((platform) => {
           dropdown.addOption(platform, platform);
@@ -140,17 +143,33 @@ export class GameBacklogSettingTab extends PluginSettingTab {
       });
 
     new Setting(containerEl)
-      .setName('Default Priority')
-      .setDesc('The priority selected by default when adding a new game')
+      .setName(translate(this.plugin.settings.language, 'default_priority'))
+      .setDesc(translate(this.plugin.settings.language, 'default_priority_desc'))
       .addDropdown((dropdown) => {
         PRIORITIES.forEach((priority) => {
-          dropdown.addOption(priority, priority);
+          dropdown.addOption(priority, translatePriority(this.plugin.settings.language, priority));
         });
         dropdown
           .setValue(this.plugin.settings.defaultPriority)
           .onChange(async (value) => {
             this.plugin.settings.defaultPriority = value;
             await this.plugin.saveSettings();
+          });
+      });
+
+    // Language selector
+    new Setting(containerEl)
+      .setName(translate(this.plugin.settings.language, 'language'))
+      .setDesc(translate(this.plugin.settings.language, 'language_desc'))
+      .addDropdown((dropdown) => {
+        Object.entries(LANG_NAMES).forEach(([code, name]) => dropdown.addOption(code, name));
+        dropdown
+          .setValue(this.plugin.settings.language)
+          .onChange(async (value) => {
+            this.plugin.settings.language = value;
+            await this.plugin.saveSettings();
+            // Re-render to update translated labels
+            this.display();
           });
       });
   }
