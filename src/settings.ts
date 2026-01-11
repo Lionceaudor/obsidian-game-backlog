@@ -25,6 +25,7 @@ export const PLATFORMS = [
   'Full PC',
   'Gaming Laptop',
   'Steam Deck',
+  'Nintendo Switch',
   'Android Handheld',
 ] as const;
 
