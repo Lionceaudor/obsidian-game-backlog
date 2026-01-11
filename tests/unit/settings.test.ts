@@ -45,8 +45,8 @@ describe('settings', () => {
   });
 
   describe('PLATFORMS', () => {
-    it('should contain exactly 4 platforms', () => {
-      expect(PLATFORMS).toHaveLength(4);
+    it('should contain exactly 5 platforms', () => {
+      expect(PLATFORMS).toHaveLength(5);
     });
 
     it('should contain Full PC', () => {
@@ -63,6 +63,10 @@ describe('settings', () => {
 
     it('should contain Android Handheld', () => {
       expect(PLATFORMS).toContain('Android Handheld');
+    });
+
+    it('should contain Nintendo Switch', () => {
+      expect(PLATFORMS).toContain('Nintendo Switch');
     });
 
     it('should be a readonly array', () => {
