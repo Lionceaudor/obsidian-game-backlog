@@ -12,6 +12,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated minimum Obsidian app version from 1.0.0 to 1.10.6
 - Changed author URL from GitHub to personal website (pyk.ee)
 
+## [1.0.2] - 2026-01-11
+
+### Added
+
+- French localization support for plugin UI and dashboard
+
+### Changed
+
+- Settings UI: added language selector and translations
+- Dashboard: localized headings, summary and list/table formats
+- Templates: generated game note supports localized labels
+
+### Fixed
+
+- Minor quoting fixes in French translations
+
 ## [1.0.1] - 2025-12-15
 
 ### Fixed
