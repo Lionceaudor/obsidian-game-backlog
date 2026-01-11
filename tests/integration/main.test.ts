@@ -64,8 +64,8 @@ describe('GameBacklogPlugin', () => {
 
       expect(plugin.settings.twitchClientId).toBe('saved-id');
       expect(plugin.settings.defaultPlatform).toBe('Full PC');
-      expect(plugin.settings.twitchClientSecret).toBe(''); // Default
-      expect(plugin.settings.defaultPriority).toBe('Will Get Around To'); // Default
+        expect(plugin.settings.twitchClientSecret).toBe(''); // Default
+        expect(plugin.settings.defaultPriority).toBe('Plus tard'); // Default
     });
 
     it('should handle null saved data', async () => {
@@ -189,7 +189,7 @@ describe('GameBacklogPlugin', () => {
       const gameData: GameData = {
         title: 'Test Game',
         platform: 'Steam Deck',
-        priority: 'Must Play',
+          priority: 'À jouer absolument',
         rating: 85,
         hltbHours: 20,
         efficiency: 4.25,
@@ -216,7 +216,7 @@ describe('GameBacklogPlugin', () => {
       const gameData: GameData = {
         title: 'Game: The "Test" Edition',
         platform: 'Full PC',
-        priority: 'Playing',
+          priority: 'En cours',
         rating: null,
         hltbHours: null,
         efficiency: null,

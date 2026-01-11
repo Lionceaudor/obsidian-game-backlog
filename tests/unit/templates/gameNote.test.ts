@@ -48,7 +48,7 @@ describe('gameNote', () => {
     const completeGameData: GameData = {
       title: 'The Witcher 3: Wild Hunt',
       platform: 'Steam Deck',
-      priority: 'Must Play',
+      priority: 'À jouer absolument',
       rating: 92,
       hltbHours: 50.5,
       efficiency: 1.82,
@@ -96,7 +96,7 @@ describe('gameNote', () => {
       const minimalData: GameData = {
         title: 'Minimal Game',
         platform: 'Full PC',
-        priority: 'Will Get Around To',
+        priority: 'Plus tard',
         rating: null,
         hltbHours: null,
         efficiency: null,
@@ -128,7 +128,7 @@ describe('gameNote', () => {
       const dataWithQuotes: GameData = {
         title: 'Game "With" Quotes',
         platform: 'Steam Deck',
-        priority: 'Playing',
+        priority: 'En cours',
         rating: null,
         hltbHours: null,
         efficiency: null,
@@ -147,7 +147,7 @@ describe('gameNote', () => {
       const dataWithGenreQuotes: GameData = {
         title: 'Test Game',
         platform: 'Full PC',
-        priority: 'Must Play',
+        priority: 'À jouer absolument',
         rating: 80,
         hltbHours: 10,
         efficiency: 8,
@@ -167,7 +167,7 @@ describe('gameNote', () => {
       const dataWithLongDesc: GameData = {
         title: 'Long Desc Game',
         platform: 'Gaming Laptop',
-        priority: 'Completed',
+        priority: 'Terminés',
         rating: 75,
         hltbHours: 20,
         efficiency: 3.75,
@@ -188,7 +188,7 @@ describe('gameNote', () => {
       const dataWithHtmlEntities: GameData = {
         title: 'HTML Entity Game',
         platform: 'Android Handheld',
-        priority: 'Dropped',
+        priority: 'Abandonné',
         rating: 60,
         hltbHours: 5,
         efficiency: 12,
@@ -267,7 +267,7 @@ describe('gameNote', () => {
     });
 
     it('should handle all priority values', () => {
-      const priorities = ['Must Play', 'Will Get Around To', 'Playing', 'Completed', 'Dropped'] as const;
+      const priorities = ['À jouer absolument', 'Plus tard', 'En cours', 'Terminés', 'Abandonné'] as const;
 
       for (const priority of priorities) {
         const data: GameData = {

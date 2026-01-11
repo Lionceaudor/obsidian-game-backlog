@@ -34,7 +34,7 @@ describe('GameBacklogPlugin methods', () => {
       const gameData = {
         title: 'Test Game',
         platform: 'Steam Deck',
-        priority: 'Must Play',
+          priority: 'À jouer absolument',
         rating: 85,
         hltbHours: 20,
         efficiency: 4.25,
@@ -69,7 +69,7 @@ describe('GameBacklogPlugin methods', () => {
       const gameData = {
         title: 'Existing Game',
         platform: 'Steam Deck',
-        priority: 'Must Play',
+          priority: 'À jouer absolument',
         rating: 85,
         hltbHours: 20,
         efficiency: 4.25,
@@ -105,7 +105,7 @@ describe('GameBacklogPlugin methods', () => {
       const gameData = {
         title: 'Error Game',
         platform: 'Steam Deck',
-        priority: 'Must Play',
+          priority: 'À jouer absolument',
         rating: 85,
         hltbHours: 20,
         efficiency: 4.25,
@@ -184,8 +184,7 @@ describe('GameBacklogPlugin methods', () => {
       app.vault.getAbstractFileByPath = vi.fn().mockReturnValue(file);
       app.vault.read = vi.fn().mockResolvedValue(`---
 title: "Test Game"
-priority: "Must Play"
----
+        priority: "À jouer absolument"
 
 Some content`);
       app.vault.modify = vi.fn().mockResolvedValue(undefined);
@@ -193,7 +192,7 @@ Some content`);
       // Mock metadata cache
       app.metadataCache.getFileCache = vi.fn().mockReturnValue({
         frontmatter: {
-          priority: 'Must Play'
+            priority: 'À jouer absolument'
         }
       });
 
