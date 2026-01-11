@@ -41,6 +41,8 @@ See your backlog at a glance with stats, what you're currently playing, and reco
 - **Dataview Dashboard**: Auto-generated dashboard with games organized by priority and platform
 - **Status Tracking**: Track games as "Must Play", "Playing", "Completed", or "Dropped"
 
+Supported platforms include Full PC, Gaming Laptop, Steam Deck, Android Handheld and Nintendo Switch.
+
 ## Installation
 
 1. Open Obsidian Settings

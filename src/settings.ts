@@ -16,7 +16,7 @@ export const DEFAULT_SETTINGS: GameBacklogSettings = {
   twitchClientId: '',
   twitchClientSecret: '',
   steamGridDbApiKey: '',
-  defaultPlatform: 'Steam Deck',
+  defaultPlatform: 'Nintendo Switch',
   defaultPriority: 'Will Get Around To',
   language: 'en',
 };
