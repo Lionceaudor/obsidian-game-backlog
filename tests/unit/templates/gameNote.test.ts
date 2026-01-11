@@ -66,7 +66,7 @@ describe('gameNote', () => {
       expect(result).toContain('---');
       expect(result).toContain('title: "The Witcher 3: Wild Hunt"');
       expect(result).toContain('platform: "Steam Deck"');
-      expect(result).toContain('priority: "Must Play"');
+      expect(result).toContain('priority: "À jouer absolument"');
       expect(result).toContain('rating: 92');
       expect(result).toContain('hltb_hours: 50.5');
       expect(result).toContain('efficiency: 1.82');

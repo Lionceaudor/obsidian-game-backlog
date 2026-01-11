@@ -206,7 +206,7 @@ describe('GameBacklogPlugin', () => {
       expect(fileName).toBe('🎮 Test Game.md');
       expect(noteContent).toContain('title: "Test Game"');
       expect(noteContent).toContain('platform: "Steam Deck"');
-      expect(noteContent).toContain('priority: "Must Play"');
+      expect(noteContent).toContain('priority: "À jouer absolument"');
       expect(noteContent).toContain('rating: 85');
       expect(noteContent).toContain('hltb_hours: 20');
       expect(noteContent).toContain('efficiency: 4.25');
