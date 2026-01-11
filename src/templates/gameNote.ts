@@ -7,7 +7,7 @@ import { translate } from '../i18n';
  * @returns Complete markdown content for the game note
  */
 export function generateGameNote(data: GameData, language = 'en'): string {
-  const frontmatter = generateFrontmatter(data);
+  const frontmatter = generateFrontmatter(data, language);
   const body = generateBody(data, language);
   return `${frontmatter}\n${body}`;
 }
@@ -17,12 +17,20 @@ export function generateGameNote(data: GameData, language = 'en'): string {
  * @param data - Game data to include in frontmatter
  * @returns YAML frontmatter string
  */
-function generateFrontmatter(data: GameData): string {
+import { translatePlatform, translateGenre, translatePriority } from '../i18n';
+
+function generateFrontmatter(data: GameData, language = 'en'): string {
   const lines: string[] = ['---'];
 
   lines.push(`title: "${escapeYaml(data.title)}"`);
   lines.push(`platform: "${data.platform}"`);
   lines.push(`priority: "${data.priority}"`);
+
+  // Localized duplicates for display when user's language is not English.
+  if (language === 'fr') {
+    lines.push(`platform_localized: "${escapeYaml(translatePlatform(language, data.platform))}"`);
+    lines.push(`priority_localized: "${escapeYaml(translatePriority(language, data.priority))}"`);
+  }
 
   if (data.rating !== null) {
     lines.push(`rating: ${data.rating}`);
@@ -59,6 +67,13 @@ function generateFrontmatter(data: GameData): string {
     data.genres.forEach((genre) => {
       lines.push(`  - "${escapeYaml(genre)}"`);
     });
+
+    if (language === 'fr') {
+      lines.push('genres_localized:');
+      data.genres.forEach((genre) => {
+        lines.push(`  - "${escapeYaml(translateGenre(language, genre))}"`);
+      });
+    }
   }
 
   lines.push(`added: ${new Date().toISOString().split('T')[0]}`);

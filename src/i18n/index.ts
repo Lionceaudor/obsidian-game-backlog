@@ -116,4 +116,51 @@ export function translatePriority(locale: string, priority: string): string {
   return translate(locale, key);
 }
 
+/**
+ * Translate a platform name into the target locale when available.
+ * Falls back to the original platform string when no translation is found.
+ * @param locale - locale code
+ * @param platform - platform string in English
+ */
+export function translatePlatform(locale: string, platform: string): string {
+  if (locale !== 'fr') return platform;
+  const map: Record<string, string> = {
+    'Full PC': 'PC',
+    'Gaming Laptop': 'PC portable',
+    'Steam Deck': 'Steam Deck',
+    'Nintendo Switch': 'Nintendo Switch',
+    'Android Handheld': 'Android',
+  };
+  return map[platform] ?? platform;
+}
+
+/**
+ * Translate a genre name into the target locale when available.
+ * Falls back to the original genre string when no translation is found.
+ * @param locale - locale code
+ * @param genre - genre string in English
+ */
+export function translateGenre(locale: string, genre: string): string {
+  if (locale !== 'fr') return genre;
+  const map: Record<string, string> = {
+    Action: 'Action',
+    Adventure: 'Aventure',
+    'Role-playing': 'Jeu de rôle',
+    RPG: 'RPG',
+    Strategy: 'Stratégie',
+    Puzzle: 'Puzzle',
+    Sports: 'Sport',
+    Simulation: 'Simulation',
+    Racing: 'Course',
+    Platformer: 'Plate-forme',
+    Horror: 'Horreur',
+    Indie: 'Indépendant',
+    Fighting: 'Combat',
+    Shooter: 'Tir',
+    Stealth: 'Infiltration',
+    Casual: 'Casual',
+  };
+  return map[genre] ?? genre;
+}
+
 export type { Locale };
