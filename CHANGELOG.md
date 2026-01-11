@@ -19,6 +19,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `Nintendo Switch` to supported platforms and set it as the default platform
 - Documentation: updated README to mention Nintendo Switch support
 
+## [1.0.4] - 2026-01-11
+
+### Added
+
+- Localized frontmatter fields for French (`platform_localized`, `priority_localized`, `genres_localized`)
+
+### Changed
+
+- Added `Nintendo Switch` to available platforms (non-default)
+- i18n: added platform and genre translation helpers
+
+
 
 ## [1.0.2] - 2026-01-11
 
