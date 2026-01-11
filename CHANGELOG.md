@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated minimum Obsidian app version from 1.0.0 to 1.10.6
 - Changed author URL from GitHub to personal website (pyk.ee)
 
+## [1.0.3] - 2026-01-11
+
+### Changed
+
+- Added `Nintendo Switch` to supported platforms and set it as the default platform
+- Documentation: updated README to mention Nintendo Switch support
+
+
 ## [1.0.2] - 2026-01-11
 
 ### Added
