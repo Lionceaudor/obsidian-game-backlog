@@ -111,7 +111,7 @@ describe('gameNote', () => {
 
       expect(result).toContain('title: "Minimal Game"');
       expect(result).toContain('platform: "Full PC"');
-      expect(result).toContain('priority: "Will Get Around To"');
+      expect(result).toContain('priority: "Plus tard"');
       expect(result).toContain('rating: null');
       expect(result).toContain('hltb_hours: null');
       expect(result).toContain('efficiency: null');
@@ -205,10 +205,10 @@ describe('gameNote', () => {
     });
 
     it('should include added date in ISO format', () => {
-      const data: GameData = {
+        const data: GameData = {
         title: 'Date Test',
         platform: 'Steam Deck',
-        priority: 'Playing',
+        priority: 'En cours',
         rating: null,
         hltbHours: null,
         efficiency: null,
@@ -225,10 +225,10 @@ describe('gameNote', () => {
     });
 
     it('should handle rating without hours (no efficiency line)', () => {
-      const data: GameData = {
+        const data: GameData = {
         title: 'Rating Only',
         platform: 'Full PC',
-        priority: 'Must Play',
+        priority: 'À jouer absolument',
         rating: 85,
         hltbHours: null,
         efficiency: null,
@@ -246,10 +246,10 @@ describe('gameNote', () => {
     });
 
     it('should handle hours without rating', () => {
-      const data: GameData = {
+        const data: GameData = {
         title: 'Hours Only',
         platform: 'Full PC',
-        priority: 'Will Get Around To',
+        priority: 'Plus tard',
         rating: null,
         hltbHours: 25,
         efficiency: null,

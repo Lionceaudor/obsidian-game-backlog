@@ -241,6 +241,12 @@ export default class GameBacklogPlugin extends Plugin {
     const completedExpr = toExpr(listCompleted);
       const summaryExpr = toExpr(summaryT);
 
+    // priority labels (localized/stored values)
+    const pMust = translate(lang, 'priority_must_play');
+    const pWill = translate(lang, 'priority_will_get_around_to');
+    const pPlaying = translate(lang, 'priority_playing');
+    const pCompleted = translate(lang, 'priority_completed');
+
     const content = `---
 tags:
   - dashboard
@@ -254,11 +260,11 @@ obsidianUIMode: preview
 
 \`\`\`dataviewjs
 const games = dv.pages('#game');
-const backlog = games.where(p => p.priority === "Must Play" || p.priority === "Will Get Around To");
+const backlog = games.where(p => p.priority === ${JSON.stringify(pMust)} || p.priority === ${JSON.stringify(pWill)});
 const backlogCount = backlog.length;
 const totalHours = Math.round(backlog.array().reduce((sum, p) => sum + (p.hltb_hours || 0), 0));
-const completed = games.where(p => p.priority === "Completed").length;
-const playing = games.where(p => p.priority === "Playing").length;
+const completed = games.where(p => p.priority === ${JSON.stringify(pCompleted)}).length;
+const playing = games.where(p => p.priority === ${JSON.stringify(pPlaying)}).length;
 
   dv.paragraph(${summaryExpr});
 \`\`\`
@@ -270,7 +276,7 @@ const playing = games.where(p => p.priority === "Playing").length;
 \`\`\`dataview
 LIST WITHOUT ID ${nowPlayingExpr}
 FROM #game
-WHERE priority = "Playing"
+WHERE priority = ${JSON.stringify(pPlaying)}
 \`\`\`
 
 ---
@@ -287,7 +293,7 @@ TABLE WITHOUT ID
   efficiency AS "${tableValue}",
   platform AS "${tableOn}"
 FROM #game
-WHERE priority = "Must Play"
+WHERE priority = ${JSON.stringify(pMust)}
 SORT efficiency DESC
 LIMIT 5
 \`\`\`
@@ -300,7 +306,7 @@ LIMIT 5
 \`\`\`dataview
 LIST WITHOUT ID ${mustPlayExpr}
 FROM #game
-WHERE priority = "Must Play"
+WHERE priority = ${JSON.stringify(pMust)}
 SORT efficiency DESC
 \`\`\`
 
@@ -308,7 +314,7 @@ SORT efficiency DESC
 \`\`\`dataview
 LIST WITHOUT ID ${eventuallyExpr}
 FROM #game
-WHERE priority = "Will Get Around To"
+WHERE priority = ${JSON.stringify(pWill)}
 SORT efficiency DESC
 \`\`\`
 
@@ -319,7 +325,7 @@ SORT efficiency DESC
 \`\`\`dataview
 LIST WITHOUT ID ${completedExpr}
 FROM #game
-WHERE priority = "Completed"
+WHERE priority = ${JSON.stringify(pCompleted)}
 SORT file.mtime DESC
 \`\`\`
 `;
@@ -342,7 +348,7 @@ SORT file.mtime DESC
     const cache = this.app.metadataCache.getFileCache(file);
     if (!cache?.frontmatter) return;
 
-    const initialPriority = typeof cache.frontmatter.priority === 'string' ? cache.frontmatter.priority : 'Must Play';
+    const initialPriority = typeof cache.frontmatter.priority === 'string' ? cache.frontmatter.priority : DEFAULT_SETTINGS.defaultPriority;
 
     // Create a simple modal to select new status
     const { Modal, Setting } = await import('obsidian');
@@ -385,14 +391,17 @@ SORT file.mtime DESC
         contentEl.createEl('h2', { text: translate(this.language, 'status_modal_title') });
 
         new Setting(contentEl).setName(translate(this.language, 'status_label')).addDropdown((dropdown) => {
-          const priorities = [
-              'Must Play',
-              'Will Get Around To',
-              'Playing',
-              'Completed',
-              'Dropped',
-            ];
-            priorities.forEach((p) => dropdown.addOption(p, translate(this.language, `priority_${p.toLowerCase().replace(/[^a-z0-9]+/g, '_')}`)));
+          const canonical = [
+            'must_play',
+            'will_get_around_to',
+            'playing',
+            'completed',
+            'dropped',
+          ];
+          canonical.forEach((key) => {
+            const stored = translate(this.language, `priority_${key}`);
+            dropdown.addOption(stored, stored);
+          });
           dropdown.setValue(this.newPriority);
           dropdown.onChange((value) => {
             this.newPriority = value;

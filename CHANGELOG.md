@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated minimum Obsidian app version from 1.0.0 to 1.10.6
 - Changed author URL from GitHub to personal website (pyk.ee)
 
+### Release 1.0.5 - 2026-01-11
+
+### Changed
+
+- Bumped plugin version to 1.0.5
+
+
 ## [1.0.3] - 2026-01-11
 
 ### Changed
