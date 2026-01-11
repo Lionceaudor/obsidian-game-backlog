@@ -109,11 +109,27 @@ export function translate(locale: string, key: string): string {
  * @param priority - internal priority string (e.g. 'Must Play')
  */
 export function translatePriority(locale: string, priority: string): string {
-  const key = `priority_${priority
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_|_$/g, '')}`;
-  return translate(locale, key);
+  // Map known priority values (English and French) to a canonical key suffix
+  const PRIORITY_KEY_BY_VALUE: Record<string, string> = {
+    'Must Play': 'must_play',
+    "À jouer absolument": 'must_play',
+    'Will Get Around To': 'will_get_around_to',
+    'Plus tard': 'will_get_around_to',
+    'Playing': 'playing',
+    'En cours': 'playing',
+    'Completed': 'completed',
+    'Terminés': 'completed',
+    'Dropped': 'dropped',
+    'Abandonné': 'dropped',
+  };
+
+  const keySuffix = PRIORITY_KEY_BY_VALUE[priority] ??
+    priority
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_|_$/g, '');
+
+  return translate(locale, `priority_${keySuffix}`);
 }
 
 /**

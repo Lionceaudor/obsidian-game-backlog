@@ -29,8 +29,8 @@ describe('settings', () => {
       expect(DEFAULT_SETTINGS.defaultPlatform).toBe('Steam Deck');
     });
 
-    it('should have Will Get Around To as default priority', () => {
-      expect(DEFAULT_SETTINGS.defaultPriority).toBe('Will Get Around To');
+    it('should have Plus tard as default priority', () => {
+      expect(DEFAULT_SETTINGS.defaultPriority).toBe('Plus tard');
     });
 
     it('should match GameBacklogSettings interface structure', () => {
@@ -84,24 +84,24 @@ describe('settings', () => {
       expect(PRIORITIES).toHaveLength(5);
     });
 
-    it('should contain Must Play', () => {
-      expect(PRIORITIES).toContain('Must Play');
+    it('should contain À jouer absolument', () => {
+      expect(PRIORITIES).toContain("À jouer absolument");
     });
 
-    it('should contain Will Get Around To', () => {
-      expect(PRIORITIES).toContain('Will Get Around To');
+    it('should contain Plus tard', () => {
+      expect(PRIORITIES).toContain('Plus tard');
     });
 
-    it('should contain Playing', () => {
-      expect(PRIORITIES).toContain('Playing');
+    it('should contain En cours', () => {
+      expect(PRIORITIES).toContain('En cours');
     });
 
-    it('should contain Completed', () => {
-      expect(PRIORITIES).toContain('Completed');
+    it('should contain Terminés', () => {
+      expect(PRIORITIES).toContain('Terminés');
     });
 
-    it('should contain Dropped', () => {
-      expect(PRIORITIES).toContain('Dropped');
+    it('should contain Abandonné', () => {
+      expect(PRIORITIES).toContain('Abandonné');
     });
 
     it('should be a readonly array', () => {

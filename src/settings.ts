@@ -17,7 +17,7 @@ export const DEFAULT_SETTINGS: GameBacklogSettings = {
   twitchClientSecret: '',
   steamGridDbApiKey: '',
   defaultPlatform: 'Steam Deck',
-  defaultPriority: 'Will Get Around To',
+  defaultPriority: 'Plus tard',
   language: 'en',
 };
 
@@ -30,11 +30,11 @@ export const PLATFORMS = [
 ] as const;
 
 export const PRIORITIES = [
-  'Must Play',
-  'Will Get Around To',
-  'Playing',
-  'Completed',
-  'Dropped',
+  "À jouer absolument",
+  'Plus tard',
+  'En cours',
+  'Terminés',
+  'Abandonné',
 ] as const;
 
 export type Platform = (typeof PLATFORMS)[number];
