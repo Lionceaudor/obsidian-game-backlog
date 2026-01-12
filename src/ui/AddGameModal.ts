@@ -56,6 +56,7 @@ export class AddGameModal extends Modal {
   private selectedGameDisplay: HTMLElement | null = null;
   private submitButton: HTMLButtonElement | null = null;
   private loadingEl: HTMLElement | null = null;
+  
 
   /**
    * Creates a new Add Game modal.

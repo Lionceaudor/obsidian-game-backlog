@@ -1,0 +1,1 @@
+(COPY OF 1.0.6 README.md)
