@@ -65,8 +65,8 @@ function generateFrontmatter(data: GameData, language = 'en'): string {
     // No localized genre duplicates.
   }
 
-  // Always include note field in frontmatter (null by default)
-  lines.push('note: null');
+    // Always include Note field in frontmatter (null by default)
+    lines.push('Note: null');
 
   lines.push(`added: ${new Date().toISOString().split('T')[0]}`);
   lines.push('tags:');
